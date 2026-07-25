@@ -1,0 +1,3 @@
+docbrain:
+  ai:
+    provider: mock

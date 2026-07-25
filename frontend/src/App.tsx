@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import DocumentsPage from './pages/DocumentsPage';
 import ConversationsPage from './pages/ConversationsPage';
 import ChatPage from './pages/ChatPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 export default function App() {
   return (
@@ -46,7 +47,7 @@ export default function App() {
                 }
               />
               <Route path="/" element={<Navigate to="/documents" replace />} />
-              <Route path="*" element={<Navigate to="/documents" replace />} />
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </ToastProvider>
         </AuthProvider>
