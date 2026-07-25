@@ -55,4 +55,19 @@ public class DocumentController {
                        @PathVariable UUID id) {
         documentService.deleteDocument(user.id(), id);
     }
+
+    @PostMapping("/{id}/reprocess")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @Operation(summary = "Re-process a document (re-parse, re-chunk, re-embed)")
+    public DocumentResponse reprocess(@AuthenticationPrincipal AuthenticatedUser user,
+                                      @PathVariable UUID id) {
+        return documentService.reprocessDocument(user.id(), id);
+    }
+
+    @PostMapping("/reprocess-all")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    @Operation(summary = "Re-process all documents for the authenticated user")
+    public List<DocumentResponse> reprocessAll(@AuthenticationPrincipal AuthenticatedUser user) {
+        return documentService.reprocessAllDocuments(user.id());
+    }
 }

@@ -1,16 +1,12 @@
 package com.docbrain.service;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.util.Random;
 
-@Service
 public class MockEmbeddingService implements EmbeddingService {
 
     private final int dimension;
 
-    public MockEmbeddingService(@Value("${docbrain.embedding.dimension}") int dimension) {
+    public MockEmbeddingService(int dimension) {
         this.dimension = dimension;
     }
 
