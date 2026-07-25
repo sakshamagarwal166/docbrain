@@ -34,6 +34,18 @@ docbrain:
     chunk-overlap: ${CHUNK_OVERLAP:200}
   embedding:
     dimension: ${EMBEDDING_DIMENSION:1536}
+  ai:
+    provider: ${AI_PROVIDER:mock}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      chat-model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
+      embedding-model: ${OPENAI_EMBEDDING_MODEL:text-embedding-3-small}
+  rag:
+    top-k: ${RAG_TOP_K:5}
+    max-history-pairs: ${RAG_MAX_HISTORY_PAIRS:5}
+  rate-limit:
+    max-requests: ${RATE_LIMIT_MAX_REQUESTS:20}
+    window-seconds: ${RATE_LIMIT_WINDOW_SECONDS:60}
 
 springdoc:
   swagger-ui:

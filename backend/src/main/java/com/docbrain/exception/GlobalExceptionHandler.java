@@ -56,6 +56,26 @@ public class GlobalExceptionHandler {
                 .build();
     }
 
+    @ExceptionHandler(RateLimitException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ErrorResponse handleRateLimit(RateLimitException ex) {
+        return ErrorResponse.builder()
+                .error("Too Many Requests")
+                .message(ex.getMessage())
+                .status(429)
+                .build();
+    }
+
+    @ExceptionHandler(AiServiceException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse handleAiService(AiServiceException ex) {
+        return ErrorResponse.builder()
+                .error("AI Service Error")
+                .message(ex.getMessage())
+                .status(503)
+                .build();
+    }
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneral(Exception ex) {

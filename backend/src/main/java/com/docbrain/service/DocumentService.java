@@ -145,6 +145,55 @@ public class DocumentService {
         }
     }
 
+    @Transactional
+    public DocumentResponse reprocessDocument(UUID userId, UUID documentId) {
+        Document document = documentRepository.findByIdAndUserId(documentId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Document not found"));
+        document.setStatus(DocumentStatus.PROCESSING);
+        documentRepository.save(document);
+
+        reEmbedDocumentAsync(documentId);
+
+        return DocumentResponse.from(document);
+    }
+
+    public List<DocumentResponse> reprocessAllDocuments(UUID userId) {
+        List<Document> documents = documentRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        List<DocumentResponse> responses = new ArrayList<>();
+        for (Document doc : documents) {
+            doc.setStatus(DocumentStatus.PROCESSING);
+            documentRepository.save(doc);
+            reEmbedDocumentAsync(doc.getId());
+            responses.add(DocumentResponse.from(doc));
+        }
+        return responses;
+    }
+
+    @Async
+    public void reEmbedDocumentAsync(UUID documentId) {
+        try {
+            List<Object[]> chunks = chunkRepository.findChunkContentByDocumentId(documentId);
+            for (Object[] row : chunks) {
+                UUID chunkId = (UUID) row[0];
+                String content = (String) row[1];
+                float[] embedding = embeddingService.embed(content);
+                String embeddingStr = embeddingToString(embedding);
+                chunkRepository.updateEmbedding(chunkId, embeddingStr);
+            }
+            documentRepository.findById(documentId).ifPresent(doc -> {
+                doc.setStatus(DocumentStatus.READY);
+                documentRepository.save(doc);
+            });
+            log.info("Document {} re-embedded: {} chunks", documentId, chunks.size());
+        } catch (Exception e) {
+            log.error("Failed to re-embed document {}", documentId, e);
+            documentRepository.findById(documentId).ifPresent(doc -> {
+                doc.setStatus(DocumentStatus.FAILED);
+                documentRepository.save(doc);
+            });
+        }
+    }
+
     private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new BadRequestException("File is empty");
