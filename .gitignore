@@ -47,6 +47,7 @@ Thumbs.db
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/tsconfig.tsbuildinfo
 
 # Docker volumes
 pgdata/

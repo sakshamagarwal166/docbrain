@@ -1,158 +1,201 @@
 # DocBrain
 
-AI-powered Document Q&A application using Retrieval-Augmented Generation (RAG).
+[![CI](https://github.com/sakshamagarwal166/docbrain/actions/workflows/ci.yml/badge.svg)](https://github.com/sakshamagarwal166/docbrain/actions/workflows/ci.yml)
 
-Upload documents (PDF, DOCX, TXT), the system chunks and embeds them, then ask questions answered by an LLM using relevant chunks as context.
+AI-powered Document Q&A application using Retrieval-Augmented Generation (RAG). Upload documents, ask questions, get cited answers.
+
+## Architecture
+
+```
+                         ┌─────────────────────────────────────────────┐
+                         │              Docker Compose                 │
+                         │                                             │
+   User ──► Browser ──►  │  ┌───────────┐    ┌──────────────────────┐  │
+                         │  │  Frontend  │    │      Backend         │  │
+                         │  │  (Nginx)   │───►│   (Spring Boot)      │  │
+                         │  │  port 80   │/api│    port 8080         │  │
+                         │  └───────────┘    └──────────┬───────────┘  │
+                         │                              │              │
+                         │                   ┌──────────▼───────────┐  │
+                         │                   │   PostgreSQL 16      │  │
+                         │                   │   + pgvector          │  │
+                         │                   └──────────────────────┘  │
+                         └─────────────────────────────────────────────┘
+```
+
+### RAG Pipeline
+
+```
+  Upload Flow                          Query Flow
+  ───────────                          ──────────
+  Document (PDF/DOCX/TXT)              User Question
+       │                                    │
+       ▼                                    ▼
+  Tika Parse → Text                   Embed Question
+       │                                    │
+       ▼                                    ▼
+  Recursive Chunking                  Vector Search (pgvector)
+       │                              top-k similar chunks
+       ▼                                    │
+  Embed Chunks (OpenAI)                     ▼
+       │                              Build Context + History
+       ▼                                    │
+  Store in pgvector                         ▼
+                                      LLM Generation (GPT-4o)
+                                            │
+                                            ▼
+                                      Answer + Citations
+```
 
 ## Tech Stack
 
-- Java 17, Spring Boot 3.3
-- PostgreSQL 16 + pgvector
-- Flyway migrations
-- JWT authentication (Spring Security + jjwt)
-- Apache Tika (document parsing)
-- OpenAI API (GPT-4o-mini + text-embedding-3-small)
-- SpringDoc OpenAPI (Swagger UI)
-- Docker Compose
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, TypeScript, TailwindCSS, Vite |
+| Backend | Java 17, Spring Boot 3.3, Spring Security |
+| Database | PostgreSQL 16 + pgvector |
+| AI | OpenAI (GPT-4o-mini, text-embedding-3-small) |
+| Infrastructure | Docker, Nginx, GitHub Actions |
+| Tools | Flyway, Apache Tika, Swagger UI |
 
-## Architecture — RAG Pipeline
+## Features
 
-```
-User Question
-    │
-    ▼
-┌─────────────────┐
-│ Embed Question   │  (EmbeddingService)
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│ Vector Search    │  (pgvector cosine similarity)
-│ top-k chunks     │
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│ Build Context    │  (format chunks + metadata)
-└────────┬────────┘
-         ▼
-┌─────────────────┐
-│ LLM Generation   │  (system prompt + context + question)
-└────────┬────────┘
-         ▼
-   Answer + Citations
-```
-
-## Prerequisites
-
-- Java 17+
-- Maven 3.8+
-- Docker & Docker Compose
-- OpenAI API key (optional — app works in mock mode without it)
+- **Document Upload** — PDF, DOCX, TXT (max 10MB) with async processing
+- **RAG-Powered Q&A** — Answers grounded in your documents with source citations
+- **Multi-Turn Conversations** — Conversational context across follow-up questions
+- **JWT Authentication** — Secure user accounts with token-based auth
+- **Dark Mode** — System-aware theme with manual toggle
+- **Responsive Design** — Works on desktop and mobile
+- **Mock Mode** — Full functionality without an API key for development
 
 ## Getting Started
 
-1. **Start PostgreSQL:**
+### Quick Start (Docker Compose)
+
+Run the entire stack with one command:
 
 ```bash
-docker-compose up -d
+cp .env.example .env
+docker-compose up --build
 ```
 
-2. **Run the application (mock mode, no API key needed):**
+Open [http://localhost](http://localhost) — register, upload a document, and start chatting.
+
+### Development Setup
+
+For local development with hot reload:
+
+1. **Start the database:**
+
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
+
+2. **Run the backend:**
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
 
-3. **Run with OpenAI (real embeddings + LLM):**
+3. **Run the frontend:**
 
 ```bash
-cd backend
-AI_PROVIDER=openai OPENAI_API_KEY=sk-your-key mvn spring-boot:run
+cd frontend
+npm install
+npm run dev
 ```
 
-4. **Open Swagger UI:**
+Open [http://localhost:5173](http://localhost:5173)
 
-http://localhost:8080/swagger-ui.html
+### Using OpenAI (Real AI Responses)
 
-## Example Usage
+Set these in your `.env` file:
 
-```bash
-# 1. Register
-curl -X POST http://localhost:8080/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password123"}'
-
-# 2. Upload a document (use the token from register response)
-curl -X POST http://localhost:8080/api/documents/upload \
-  -H "Authorization: Bearer <token>" \
-  -F "file=@mydocument.pdf"
-
-# 3. Create a conversation
-curl -X POST http://localhost:8080/api/conversations \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"documentIds":["<document-id>"]}'
-
-# 4. Ask a question
-curl -X POST http://localhost:8080/api/conversations/<conv-id>/messages \
-  -H "Authorization: Bearer <token>" \
-  -H "Content-Type: application/json" \
-  -d '{"message":"What is this document about?"}'
+```env
+AI_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key-here
 ```
 
-## API Endpoints
+Without an API key, the app runs in mock mode — all features work, but responses are placeholder text.
 
-### Authentication
-- `POST /api/auth/register` — Register a new user
-- `POST /api/auth/login` — Login, returns JWT
-
-### Documents (requires JWT)
-- `POST /api/documents/upload` — Upload a document (PDF, DOCX, TXT, max 10MB)
-- `GET /api/documents` — List user's documents
-- `GET /api/documents/{id}` — Get document details
-- `DELETE /api/documents/{id}` — Delete document and chunks
-- `POST /api/documents/{id}/reprocess` — Re-embed a document
-- `POST /api/documents/reprocess-all` — Re-embed all documents
-
-### Chat (requires JWT)
-- `POST /api/chat/query` — One-shot RAG query against selected documents
-
-### Conversations (requires JWT)
-- `POST /api/conversations` — Create conversation with selected documents
-- `GET /api/conversations` — List conversations
-- `GET /api/conversations/{id}` — Get full conversation with messages
-- `POST /api/conversations/{id}/messages` — Send message, get AI response
-- `DELETE /api/conversations/{id}` — Delete conversation
-
-### Chunks (requires JWT)
-- `GET /api/chunks/search?q=...&documentIds=...&topK=5` — Vector similarity search (no LLM)
-
-## Configuration
-
-Copy `.env.example` to `.env` and customize values. Key settings:
+## Environment Variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `AI_PROVIDER` | mock | `mock` or `openai` |
+| `AI_PROVIDER` | `mock` | `mock` (no API key) or `openai` |
 | `OPENAI_API_KEY` | — | Required when provider is `openai` |
-| `OPENAI_CHAT_MODEL` | gpt-4o-mini | Chat completions model |
-| `OPENAI_EMBEDDING_MODEL` | text-embedding-3-small | Embeddings model |
-| `RAG_TOP_K` | 5 | Number of chunks retrieved per query |
-| `RAG_MAX_HISTORY_PAIRS` | 5 | Conversation history pairs sent to LLM |
-| `RATE_LIMIT_MAX_REQUESTS` | 20 | Max query requests per minute per user |
-| `CHUNK_SIZE` | 1000 | Text chunk size in characters |
-| `CHUNK_OVERLAP` | 200 | Overlap between chunks |
+| `OPENAI_CHAT_MODEL` | `gpt-4o-mini` | Chat completions model |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Embeddings model |
+| `POSTGRES_DB` | `docbrain` | Database name |
+| `POSTGRES_USER` | `docbrain` | Database user |
+| `POSTGRES_PASSWORD` | `docbrain` | Database password |
+| `JWT_SECRET` | dev default | HMAC secret (change in production) |
+| `RAG_TOP_K` | `5` | Chunks retrieved per query |
+| `RAG_MAX_HISTORY_PAIRS` | `5` | Conversation history pairs sent to LLM |
+| `CHUNK_SIZE` | `1000` | Text chunk size in characters |
+| `CHUNK_OVERLAP` | `200` | Overlap between chunks |
+| `RATE_LIMIT_MAX_REQUESTS` | `20` | Max requests per minute per user |
+| `CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost` | Allowed CORS origins |
+
+## API Documentation
+
+Interactive API docs available at [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html) when the backend is running.
+
+### Endpoints
+
+| Method | Path | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/register` | No | Register a new user |
+| POST | `/api/auth/login` | No | Login, returns JWT |
+| POST | `/api/documents/upload` | Yes | Upload document (PDF, DOCX, TXT) |
+| GET | `/api/documents` | Yes | List user's documents |
+| GET | `/api/documents/{id}` | Yes | Get document details |
+| DELETE | `/api/documents/{id}` | Yes | Delete document and chunks |
+| POST | `/api/conversations` | Yes | Create conversation with documents |
+| GET | `/api/conversations` | Yes | List conversations |
+| GET | `/api/conversations/{id}` | Yes | Get conversation with messages |
+| POST | `/api/conversations/{id}/messages` | Yes | Send message, get AI response |
+| DELETE | `/api/conversations/{id}` | Yes | Delete conversation |
+| POST | `/api/chat/query` | Yes | One-shot RAG query |
+| GET | `/api/chunks/search` | Yes | Vector similarity search |
+| GET | `/actuator/health` | No | Health check |
 
 ## Project Structure
 
 ```
-backend/src/main/java/com/docbrain/
-├── config/          # Async, OpenAPI, AI provider configuration
-├── controller/      # REST controllers (Auth, Document, Chat, Conversation, Chunk)
-├── dto/             # Request/response DTOs
-├── exception/       # Custom exceptions, global handler
-├── model/           # JPA entities (User, Document, Chunk, Conversation, Message)
-├── repository/      # Spring Data JPA repositories
-├── security/        # JWT auth, Spring Security config, rate limiter
-└── service/         # Business logic (RAG pipeline, chunking, embedding, LLM)
+docbrain/
+├── backend/
+│   ├── Dockerfile
+│   └── src/main/java/com/docbrain/
+│       ├── config/         # CORS, async, AI provider, request logging
+│       ├── controller/     # REST controllers
+│       ├── dto/            # Request/response objects
+│       ├── exception/      # Custom exceptions, global handler
+│       ├── model/          # JPA entities
+│       ├── repository/     # Data access (including pgvector queries)
+│       ├── security/       # JWT, Spring Security, rate limiter
+│       └── service/        # RAG pipeline, chunking, embedding, LLM
+├── frontend/
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── src/
+│       ├── components/     # Layout, Sidebar, Modal, Toast, Skeleton
+│       ├── context/        # Auth, Toast, Theme providers
+│       ├── hooks/          # useDocuments, useConversations, useChat
+│       ├── pages/          # Login, Register, Documents, Conversations, Chat, 404
+│       ├── services/       # API client, auth, document, conversation services
+│       └── types/          # TypeScript interfaces
+├── docker-compose.yml      # Full stack (db + backend + frontend)
+├── docker-compose.dev.yml  # Database only (for local development)
+├── .github/workflows/      # CI pipeline
+└── .env.example            # Environment variable template
 ```
+
+## Screenshots
+
+*Coming soon*
+
+## License
+
+MIT
