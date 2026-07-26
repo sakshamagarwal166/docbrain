@@ -40,8 +40,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       >
         <div className="p-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">D</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center shadow-sm">
+              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                <path d="M14 2v6h6" />
+                <circle cx="12" cy="15" r="3" />
+                <path d="M9.5 12.5 12 15l2.5-2.5" />
+              </svg>
             </div>
             <span className="text-lg font-bold text-gray-900 dark:text-white">DocBrain</span>
           </div>
