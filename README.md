@@ -11,14 +11,14 @@ AI-powered Document Q&A application using Retrieval-Augmented Generation (RAG). 
                          │              Docker Compose                 │
                          │                                             │
    User ──► Browser ──►  │  ┌───────────┐    ┌──────────────────────┐  │
-                         │  │  Frontend  │    │      Backend         │  │
-                         │  │  (Nginx)   │───►│   (Spring Boot)      │  │
-                         │  │  port 80   │/api│    port 8080         │  │
+                         │  │  Frontend │    │      Backend         │  │
+                         │  │  (Nginx)  │───►│   (Spring Boot)      │  │
+                         │  │  port 80  │/api│    port 8080         │  │
                          │  └───────────┘    └──────────┬───────────┘  │
                          │                              │              │
                          │                   ┌──────────▼───────────┐  │
                          │                   │   PostgreSQL 16      │  │
-                         │                   │   + pgvector          │  │
+                         │                   │   + pgvector         │  │
                          │                   └──────────────────────┘  │
                          └─────────────────────────────────────────────┘
 ```
