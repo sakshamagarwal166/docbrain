@@ -74,7 +74,7 @@ class RagPipelineIntegrationTest {
                 "text/plain",
                 "DocBrain is an AI-powered document Q&A application. It uses RAG to provide accurate answers with citations.".getBytes());
 
-        MvcResult uploadResult = mockMvc.perform(multipart("/api/documents")
+        MvcResult uploadResult = mockMvc.perform(multipart("/api/documents/upload")
                         .file(file)
                         .header("Authorization", "Bearer " + authToken))
                 .andExpect(status().isCreated())
