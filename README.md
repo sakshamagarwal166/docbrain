@@ -194,7 +194,10 @@ docbrain/
 
 ## Screenshots
 
-*Coming soon*
+<img width="599" height="609" alt="Screenshot 2026-07-26 190056" src="https://github.com/user-attachments/assets/5696f8f4-8f97-48aa-958e-a39bac2cb08a" />
+<img width="1440" height="900" alt="Screenshot 2026-07-26 190154" src="https://github.com/user-attachments/assets/0ce8331a-6ca4-4b3f-a334-7ac1a726a46b" />
+<img width="1440" height="900" alt="Screenshot 2026-07-26 190742" src="https://github.com/user-attachments/assets/9ef363cb-43eb-4a02-aef6-5001f16b6ad8" />
+<img width="1440" height="900" alt="Screenshot 2026-07-26 190829" src="https://github.com/user-attachments/assets/711e8bd8-c99b-4620-8b9f-c6a4576d5896" />
 
 ## License
 
